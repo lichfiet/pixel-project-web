@@ -60,15 +60,8 @@ else
     exit 4
 fi
 
-# install docker images
-docker pull redis:6.2-alpine
-if [ $? -eq 0 ]; then
-    echo -e "${BGreen}${CMark}${BBlack} Redis Image Pulled. ${NC}"
-else
-    echo -e "${BRed}${FMark} One or more docker pull commands encountered an error\n"
-    exit 5
-fi
-docker pull node:18
+
+docker pull node:18-alpine
 if [ $? -eq 0 ]; then
     echo -e "${BGreen}${CMark}${BBlack} Node Image Pulled. ${NC}"
 else

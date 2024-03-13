@@ -1,8 +1,8 @@
 # import config.
 # You can change the default config with `make cnf="config_special.env" build`
-cnf ?= ./env/config.env
-include $(cnf)
-export $(shell sed 's/=.*//' $(cnf))
+#cnf ?= ./env/config.env
+#include $(cnf)
+#export $(shell sed 's/=.*//' $(cnf))
 
 # HELP
 # This will output the help for each task
@@ -19,72 +19,35 @@ help: ## This help.
 # Build the container
 build: ## Build the container
 
-	@echo "\n${BCyan}...Building Web Container Image...${NC} \n"
-
-	docker build -t $(APP_NAME):dev --platform linux/amd64 -f ./docker/build.Dockerfile .
-
-	@echo "\n${BCyan}...Launching Dev Server...${NC} \n"
+	docker build -t pixel-project-web:dev --platform linux/amd64 .
 
 build-nc: ## Build the container without no cache
-	docker build -t $(APP_NAME):dev --platform linux/amd64 --no-cache -f ./docker/build.Dockerfile .
-
-start: ## Start node and redis in docker compose
-
-	@echo "\n${BCyan}...Launching Dev Server...${NC} \n"
-
-	docker compose -f ./docker/compose.yaml up
-
-	@echo "\n${BWhite}Hold ctrl and click this link 'http://localhost:8000'${NC}\n"
-
-start-d: ## Start node and redis in docker compose
-
-	@echo "\n${BCyan}...Launching Dev Server...${NC} \n"
-
-	docker compose -f ./docker/compose.yaml up -d
-
-	@echo "\n${BWhite}Hold ctrl and click this link 'http://localhost:8000'${NC}\n"
-
-stop: ## stop docker compose
-
-	@echo "\n${BCyan}...Stopping Docker Containers...${NC} \n"
-
-	docker compose -f ./docker/compose.yaml down
+	docker build -t pixel-project-web:dev --platform linux/amd64 --no-cache .
 
 # Clean Up
 clean: # Remove images, modules, and cached build layers
 
 	rm -rf node_modules
 	rm -rf package-lock.json
-	-docker stop webserv
-	-docker rm webserv
-	-docker image rm game
-	-docker stop redis
-	-docker rm redis
-	rm -rf log
+
+# Run the container
+run: ## Run container attached`
+	-docker kill pixel-project-web-dev
+	-docker rm pixel-project-web-dev
+	docker run --name="pixel-project-web-dev" -it --rm -p 8001:8001 pixel-project-web:dev
+
+run-d: ## Run container detached
+	-docker kill pixel-project-web-dev
+	-docker rm pixel-project-web-dev
+	docker run --name="pixel-project-web-dev" -it --rm -p 8001:8001 -d pixel-project-web:dev
 
 init: # Initailize development environment and start it
 
-	chmod u+x ./make/dev-init.sh
-	./make/dev-init.sh
+	chmod +x ./dev-init.sh
+	./dev-init.sh
+	npm install
+	docker pull node:18-alpine
 
-	@echo "\n${BCyan}...Building Web Container Image...${NC} \n"
+	docker build -t pixel-project-web:dev --platform linux/amd64 .
 
-	docker build -t $(APP_NAME):dev --platform linux/amd64 -f ./docker/build.Dockerfile .
-
-	@echo "\n${BCyan}...Development Environment Successfully Initialied...${NC} \n"
-	@echo "\n${BBlack}Type ${BCyan}'make help' ${BBlack}for a list of commands${NC} \n"
-
-prod: ## Run for production
-
-	chmod u+x ./make/dev-init.sh
-	./make/dev-init.sh
-
-	@echo "\n${BCyan}...Building Web Container Image...${NC} \n"
-
-	docker build -t $(APP_NAME):latest --platform linux/amd64 -f ./docker/build.Dockerfile .
-
-	@echo "\n${BCyan}...Launching Dev Server...${NC} \n"
-
-	docker compose -f ./docker/prod-compose.yaml up -d
-
-	@echo "\n${BWhite}Hold ctrl and click this link 'http://localhost:8000'${NC}\n"
+	@echo "Type 'make help' for a list of commands"
